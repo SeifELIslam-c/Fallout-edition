@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case File: English Portfilio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #b91c1c; /* Blood Red */
+            --accent-glow: rgba(185, 28, 28, 0.5);
+            --secondary-glow: rgba(0, 170, 255, 0.3);
+            --whatsapp-color: #25D366;
+            --whatsapp-glow: rgba(37, 211, 102, 0.5);
+            --text-color: #d1d5db; /* Light Gray */
+            --bg-color: #000000;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Tajawal', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-display {
+            font-family: 'Changa', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        
+        /* Preloader Style */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out 0.5s, visibility 0.5s ease-out 0.5s; /* Added delay */
+        }
+        #preloader.loaded {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loader-text {
+            font-family: var(--font-mono);
+            font-size: 1.25rem; /* Adjusted for better mobile view */
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-glow);
+            animation: loader-glitch 2s infinite;
+            text-align: center;
+            padding: 1rem;
+        }
+        @keyframes loader-glitch {
+            0%, 100% { opacity: 1; transform: skewX(0); }
+            50% { opacity: 0.7; transform: skewX(2deg); }
+        }
+
+
+        #video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -2;
+            filter: grayscale(40%) brightness(60%);
+        }
+
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%,rgba(0,0,0,0.6) 100%), url('https://www.transparenttextures.com/patterns/scanlines.png');
+            z-index: -1;
+        }
+
+        .content-section {
+            position: relative;
+            z-index: 1;
+            padding: 5rem 1rem;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Advanced Glitch Effect */
+        .glitch-effect {
+            position: relative;
+            color: white;
+            text-shadow: 0 0 1px var(--accent-color), 0 0 3px var(--accent-color);
+        }
+        .glitch-effect:before,
+        .glitch-effect:after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .glitch-effect:before {
+            left: -1px;
+            text-shadow: 1px 0 #00aaff;
+            animation: glitch-anim-1 3s infinite linear alternate-reverse;
+        }
+        .glitch-effect:after {
+            left: 1px;
+            text-shadow: -1px 0 var(--accent-color);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
+            2% { clip-path: polygon(0 78%, 100% 78%, 100% 82%, 0 82%); }
+            4% { clip-path: polygon(0 45%, 100% 45%, 100% 48%, 0 48%); }
+            6% { clip-path: polygon(0 92%, 100% 92%, 100% 98%, 0 98%); }
+            8% { clip-path: polygon(0 55%, 100% 55%, 100% 60%, 0 60%); }
+            100% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: polygon(0 70%, 100% 70%, 100% 75%, 0 75%); }
+            3% { clip-path: polygon(0 8%, 100% 8%, 100% 12%, 0 12%); }
+            5% { clip-path: polygon(0 55%, 100% 55%, 100% 60%, 0 60%); }
+            7% { clip-path: polygon(0 22%, 100% 22%, 100% 28%, 0 28%); }
+            9% { clip-path: polygon(0 80%, 100% 80%, 100% 85%, 0 85%); }
+            100% { clip-path: polygon(0 70%, 100% 70%, 100% 75%, 0 75%); }
+        }
+
+        .reveal-on-scroll {
+            opacity: 0;
+            filter: blur(5px);
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out, filter 1s ease-out;
+        }
+        .reveal-on-scroll.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
+        
+        .section-divider {
+            height: 2px; width: 100px;
+            background-color: var(--accent-color);
+            margin: 2rem auto;
+        }
+
+        /* Evidence Board Style */
+        .evidence-board {
+            background-color: #1a1a1a;
+            background-image: url('https://www.transparenttextures.com/patterns/concrete-wall-3.png');
+        }
+        .evidence-photo-wrapper {
+            opacity: 0;
+            transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0.8) translateY(50px) rotate(-15deg);
+        }
+        .evidence-photo-wrapper.is-visible {
+            opacity: 1;
+            transform: scale(1) translateY(0) rotate(var(--rotate-deg, 0deg));
+        }
+        .evidence-photo {
+            position: relative; background: white; padding: 10px; padding-bottom: 60px; /* Space for text */
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .evidence-photo:hover {
+            transform: scale(1.1) !important; z-index: 10;
+            box-shadow: 10px 10px 25px rgba(0,0,0,0.5);
+        }
+        .evidence-photo::after {
+            content: ''; position: absolute; top: -15px; left: 50%;
+            transform: translateX(-50%); width: 100px; height: 30px;
+            background: rgba(255, 255, 224, 0.4);
+            border-left: 1px dashed rgba(0,0,0,0.2);
+            border-right: 1px dashed rgba(0,0,0,0.2);
+            box-shadow: 0 0 1px rgba(0,0,0,0.2);
+        }
+        .evidence-caption {
+            position: absolute; bottom: 10px; left: 10px; right: 10px;
+            font-family: var(--font-mono); color: #333;
+        }
+        
+        /* Video Monitor Style */
+        .video-monitor {
+            position: relative; background: #000;
+            border: 1px solid rgba(185, 28, 28, 0.2);
+            padding: 1rem; box-shadow: 0 0 40px var(--accent-glow);
+        }
+        .monitor-corners {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            border-color: var(--accent-color); border-style: solid;
+        }
+        .video-monitor .c-tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+        .video-monitor .c-tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
+        .video-monitor .c-bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
+        .video-monitor .c-br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+        .video-container {
+            position: relative; width: 100%; overflow: hidden;
+            padding-top: 56.25%; /* 16:9 */
+        }
+        .video-container iframe {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; border: 0;
+        }
+
+        /* Terminal Style */
+        .terminal-container {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(185, 28, 28, 0.3);
+            padding: 1.5rem;
+            position: relative;
+            width: fit-content; /* Make container fit its content */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .terminal-header {
+            font-family: var(--font-mono);
+            color: var(--accent-color);
+            border-bottom: 1px solid rgba(185, 28, 28, 0.3);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .skill-loader {
+            background-color: rgba(185, 28, 28, 0.1);
+            padding: 0.25rem;
+            border: 1px solid rgba(185, 28, 28, 0.2);
+        }
+        .skill-loader-bar {
+            background-color: var(--accent-color);
+            height: 1.25rem;
+            width: 0;
+            transition: width 2s ease-out;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        .is-visible .skill-loader-bar {
+            width: var(--skill-level);
+        }
+        
+        /* Cybernetic Button Effect */
+        .cyber-button {
+            position: relative;
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: color 0.4s, border-color 0.4s;
+        }
+        .cyber-button .line {
+            position: absolute;
+            transition: transform 0.4s ease;
+        }
+        /* Email button */
+        .email-btn { color: var(--accent-color); }
+        .email-btn:hover { border-color: var(--accent-color); }
+        .email-btn .line { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-glow); }
+
+        /* WhatsApp button */
+        .whatsapp-btn { color: var(--whatsapp-color); }
+        .whatsapp-btn:hover { border-color: var(--whatsapp-color); }
+        .whatsapp-btn .line { background: var(--whatsapp-color); box-shadow: 0 0 10px var(--whatsapp-glow); }
+
+        .cyber-button .line-top { top: 0; left: 0; width: 100%; height: 2px; transform: scaleX(0); transform-origin: left; }
+        .cyber-button:hover .line-top { transform: scaleX(1); }
+        .cyber-button .line-right { top: 0; right: 0; width: 2px; height: 100%; transform: scaleY(0); transform-origin: top; }
+        .cyber-button:hover .line-right { transform: scaleY(1); }
+        .cyber-button .line-bottom { bottom: 0; right: 0; width: 100%; height: 2px; transform: scaleX(0); transform-origin: right; }
+        .cyber-button:hover .line-bottom { transform: scaleX(1); }
+        .cyber-button .line-left { bottom: 0; left: 0; width: 2px; height: 100%; transform: scaleY(0); transform-origin: bottom; }
+        .cyber-button:hover .line-left { transform: scaleY(1); }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-text">ACCESSING CASE FILE #7761...</div>
+    </div>
+
+    <!-- Background Video -->
+    <video playsinline autoplay muted loop id="video-bg">
+        <source src="https://res.cloudinary.com/dz4xwjvif/video/upload/v1752055944/ocean-with-neon-glitch.3840x2160_cck4cq.mp4" type="video/mp4">
+    </video>
+    <div class="video-overlay"></div>
+
+    <!-- Hero Section -->
+    <header class="min-h-screen flex items-center justify-center text-center text-white px-4">
+        <div>
+            <h1 class="font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl glitch-effect" data-text="SEIF EL ISLAM">SEIF EL ISLAM</h1>
+            <p class="mt-4 text-lg md:text-2xl font-light tracking-widest">Video Editor . Graphic Designer . Copywriter</p>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section class="content-section bg-black/80">
+        <div class="container mx-auto max-w-4xl text-center">
+            <div class="terminal-container reveal-on-scroll">
+                <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
+                <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
+                <div class="terminal-header text-left text-base md:text-lg">> SUSPECT PROFILE: CASE #7761</div>
+                <div class="text-base md:text-xl leading-relaxed text-left space-y-2 p-4">
+                    <p class="reveal-on-scroll" style="transition-delay: 200ms;">Seif El Islam. A multi-skilled creative professional,</p>
+                    <p class="reveal-on-scroll" style="transition-delay: 400ms;">combining artistic vision with technical expertise.</p>
+                    <p class="reveal-on-scroll" style="transition-delay: 600ms;">Mission: To transform ideas into impactful visual experiences that leave a lasting impression.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Showcase -->
+    <section class="content-section evidence-board">
+        <div class="container mx-auto max-w-6xl">
+            <h2 class="font-display text-5xl md:text-6xl text-white text-center reveal-on-scroll glitch-effect" data-text="ATTACHED EVIDENCE: PORTFOLIO">ATTACHED EVIDENCE: PORTFOLIO</h2>
+            <div class="section-divider reveal-on-scroll" style="transition-delay: 100ms;"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mt-12 lg:flex lg:flex-wrap lg:justify-center">
+                <!-- Portfolio Images -->
+                <div class="evidence-photo-wrapper" style="--rotate-deg: -3deg; transition-delay: 200ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752048960/%D8%B9%D8%B7%D9%88%D8%B1_%D8%A7%D9%84%D8%B4%D8%B1%D9%82_%D8%A7%D9%84%D8%A3%D9%88%D8%B3%D8%B7_%D9%84%D9%88%D8%AC%D9%88_zie0b1.jpg" alt="Perfume Design" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-01: PERFUME_AD</p></div></div>
+                <div class="evidence-photo-wrapper" style="--rotate-deg: 2deg; transition-delay: 300ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049216/Logo_halwa_al_qodes_2_jd6nyb.jpg" alt="Sweets Logo" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-02: SWEETS_LOGO</p></div></div>
+                <div class="evidence-photo-wrapper" style="--rotate-deg: -1deg; transition-delay: 400ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049265/logo-%D8%A8%D8%B5%D8%B1%D9%8A%D8%A7%D8%AA_%D8%A7%D9%84%D8%A3%D9%86%D9%88%D8%A7%D8%B1_1_kknyzu.jpg" alt="Optics Branding" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-03: OPTICS_BRAND</p></div></div>
+                <div class="evidence-photo-wrapper" style="--rotate-deg: 4deg; transition-delay: 500ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049317/1752033860076_si3ycq.png" alt="Bike Logo" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-04: BIKES_LOGO</p></div></div>
+                <div class="evidence-photo-wrapper" style="--rotate-deg: -2deg; transition-delay: 600ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049375/Baqala_al_saada_p5pomr.jpg" alt="Food Illustration" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-05: FOOD_ILLUST</p></div></div>
+            </div>
+             <div class="mt-20 reveal-on-scroll">
+                <h3 class="font-display text-4xl text-white text-center mb-8 glitch-effect" data-text="VIDEO SAMPLE">VIDEO SAMPLE</h3>
+                <div class="max-w-4xl mx-auto video-monitor">
+                    <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
+                    <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/1wgL00xdLrU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-16 reveal-on-scroll">
+                <h3 class="font-display text-4xl text-white text-center mb-8 glitch-effect" data-text="AI GENERATED VIDEO">AI GENERATED VIDEO</h3>
+                <div class="max-w-4xl mx-auto video-monitor">
+                    <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
+                    <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
+                    <div class="video-container">
+                        <iframe src="https://player.cloudinary.com/embed/?cloud_name=dz4xwjvif&public_id=Setting_the_same_202507081234_xc5aj0&profile=cld-default" title="Cloudinary Video Player" frameborder="0" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Skills & Contact -->
+    <section class="content-section bg-black/80">
+        <div class="container mx-auto max-w-6xl">
+            <div class="terminal-container reveal-on-scroll">
+                <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
+                <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
+                <div class="terminal-header text-base md:text-lg">> Executing skill_analysis.exe...</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 p-4">
+                    <!-- Skills -->
+                    <div class="space-y-4">
+                        <div class="skill-item text-base md:text-lg"><p>Premiere Pro <span class="font-mono text-sm text-gray-400">[EXPERT]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 95%;"></div></div></div>
+                        <div class="skill-item text-base md:text-lg"><p>After Effects <span class="font-mono text-sm text-gray-400">[ADVANCED]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 79%;"></div></div></div>
+                        <div class="skill-item text-base md:text-lg"><p>AI Video Generation <span class="font-mono text-sm text-gray-400">[ADVANCED]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 89%;"></div></div></div>
+                        <div class="skill-item text-base md:text-lg"><p>Illustrator <span class="font-mono text-sm text-gray-400">[PROFICIENT]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 75%;"></div></div></div>
+                        <div class="skill-item text-base md:text-lg"><p>Copywriting <span class="font-mono text-sm text-gray-400">[PROFICIENT]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 69%;"></div></div></div>
+                        <div class="skill-item text-base md:text-lg"><p>HTML/CSS <span class="font-mono text-sm text-gray-400">[ADVANCED]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 90%;"></div></div></div>
+                    </div>
+                    <!-- Contact -->
+                    <div class="border-t-2 md:border-t-0 md:border-l-2 border-dashed border-gray-700 pl-0 md:pl-8 pt-6 md:pt-0">
+                        <p class="font-mono text-base md:text-lg text-green-400">> awaiting_transmission</p>
+                        <p class="mt-4 text-base md:text-lg">Ready for a new mission. Use the following channels:</p>
+                        <div class="mt-6 flex flex-col space-y-4">
+                            <a href="mailto:seifxdd12@gmail.com" class="cyber-button email-btn flex items-center justify-center gap-3 text-center font-display text-lg md:text-xl py-3">
+                                <span class="line line-top"></span><span class="line line-right"></span><span class="line line-bottom"></span><span class="line line-left"></span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586zm.239-.03l.53.328.53-.328l6.341 3.886A2 2 0 0 1 14 14V4.697l-5.803 3.558z"/></svg>
+                                <span>Email</span>
+                            </a>
+                            <a href="https://wa.me/213776170547" target="_blank" class="cyber-button whatsapp-btn flex items-center justify-center gap-3 text-center font-display text-lg md:text-xl py-3">
+                                <span class="line line-top"></span><span class="line line-right"></span><span class="line line-bottom"></span><span class="line line-left"></span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                                <span>WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center py-6 bg-black text-gray-500">
+        <p>CASE FILE CLOSED. &copy; 2025 Seif El Islam. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            preloader.classList.add('loaded');
+        });
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('.reveal-on-scroll').forEach((el) => scrollObserver.observe(el));
+        document.querySelectorAll('.evidence-photo-wrapper').forEach((el) => scrollObserver.observe(el));
+        document.querySelectorAll('.skill-item').forEach((el) => scrollObserver.observe(el));
+    </script>
+</body>
+</html>
+
