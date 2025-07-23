@@ -1,531 +1,586 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case File: S. El Islam</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SEIF OS v1.0 - AGENT TERMINAL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         :root {
-            --accent-color: #b91c1c; /* Blood Red */
-            --accent-glow: rgba(185, 28, 28, 0.5);
-            --secondary-glow: rgba(0, 170, 255, 0.3);
-            --whatsapp-color: #25D366;
-            --whatsapp-glow: rgba(37, 211, 102, 0.5);
-            --text-color: #d1d5db; /* Light Gray */
-            --bg-color: #000000;
-            --font-mono: 'Roboto Mono', monospace;
+            --bg-color: #0a100a;
+            --screen-bg: #1a2a1a;
+            --text-color: #ffb000; /* Fallout Amber */
+            --glow-color: rgba(255, 176, 0, 0.7);
+            --border-color: rgba(255, 176, 0, 0.3);
+            --scanline-color: rgba(0, 0, 0, 0.3);
+            --font-main: 'Share Tech Mono', monospace;
         }
+
+        /* --- Base Setup --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg-color);
+            background-image: url('https://www.transparenttextures.com/patterns/worn-dots.png');
             color: var(--text-color);
-            font-family: 'Tajawal', sans-serif;
-            overflow-x: hidden;
-        }
-
-        .font-display {
-            font-family: 'Changa', sans-serif;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        
-        /* Preloader Style */
-        #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            z-index: 10000;
+            font-family: var(--font-main);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.5s ease-out 0.5s, visibility 0.5s ease-out 0.5s; /* Added delay */
-        }
-        #preloader.loaded {
-            opacity: 0;
-            visibility: hidden;
-        }
-        .loader-text {
-            font-family: var(--font-mono);
-            font-size: 1.25rem; /* Adjusted for better mobile view */
-            color: var(--accent-color);
-            text-shadow: 0 0 10px var(--accent-glow);
-            animation: loader-glitch 2s infinite;
-            text-align: center;
-            padding: 1rem;
-        }
-        @keyframes loader-glitch {
-            0%, 100% { opacity: 1; transform: skewX(0); }
-            50% { opacity: 0.7; transform: skewX(2deg); }
+            cursor: none;
         }
 
-
-        #video-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: -2;
-            filter: grayscale(40%) brightness(60%);
-        }
-
-        .video-overlay {
+        /* --- UPDATED: Static Vignette Effect --- */
+        .vignette-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%,rgba(0,0,0,0.6) 100%), url('https://www.transparenttextures.com/patterns/scanlines.png');
-            z-index: -1;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.8) 100%);
+            z-index: 5;
         }
 
-        .content-section {
-            position: relative;
-            z-index: 1;
-            padding: 5rem 1rem;
-            min-height: 80vh;
+        /* --- Main HUD Container --- */
+        .hud-container {
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            max-height: 900px;
+            border: 3px solid #111;
+            border-radius: 20px;
+            background: #333 url('https://www.transparenttextures.com/patterns/concrete-wall.png');
+            box-shadow: inset 0 0 20px #000, 0 0 30px #000;
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
         }
 
-        /* Advanced Glitch Effect */
-        .glitch-effect {
+        .screen-bezel {
+            flex-grow: 1;
+            background: var(--screen-bg);
+            border: 3px solid #111;
+            border-radius: 10px;
+            box-shadow: inset 0 0 15px #000;
+            padding: 1.5rem;
             position: relative;
-            color: white;
-            text-shadow: 0 0 1px var(--accent-color), 0 0 3px var(--accent-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        .glitch-effect:before,
-        .glitch-effect:after {
-            content: attr(data-text);
+
+        /* Scanlines and screen effects */
+        .screen-bezel::before {
+            content: "";
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: transparent;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-        }
-        .glitch-effect:before {
-            left: -1px;
-            text-shadow: 1px 0 #00aaff;
-            animation: glitch-anim-1 3s infinite linear alternate-reverse;
-        }
-        .glitch-effect:after {
-            left: 1px;
-            text-shadow: -1px 0 var(--accent-color);
-            animation: glitch-anim-2 3s infinite linear alternate-reverse;
-        }
-        @keyframes glitch-anim-1 {
-            0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
-            2% { clip-path: polygon(0 78%, 100% 78%, 100% 82%, 0 82%); }
-            4% { clip-path: polygon(0 45%, 100% 45%, 100% 48%, 0 48%); }
-            6% { clip-path: polygon(0 92%, 100% 92%, 100% 98%, 0 98%); }
-            8% { clip-path: polygon(0 55%, 100% 55%, 100% 60%, 0 60%); }
-            100% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
-        }
-        @keyframes glitch-anim-2 {
-            0% { clip-path: polygon(0 70%, 100% 70%, 100% 75%, 0 75%); }
-            3% { clip-path: polygon(0 8%, 100% 8%, 100% 12%, 0 12%); }
-            5% { clip-path: polygon(0 55%, 100% 55%, 100% 60%, 0 60%); }
-            7% { clip-path: polygon(0 22%, 100% 22%, 100% 28%, 0 28%); }
-            9% { clip-path: polygon(0 80%, 100% 80%, 100% 85%, 0 85%); }
-            100% { clip-path: polygon(0 70%, 100% 70%, 100% 75%, 0 75%); }
-        }
-
-        .reveal-on-scroll {
-            opacity: 0;
-            filter: blur(5px);
-            transform: translateY(50px);
-            transition: opacity 1s ease-out, transform 1s ease-out, filter 1s ease-out;
-        }
-        .reveal-on-scroll.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
-        
-        .section-divider {
-            height: 2px; width: 100px;
-            background-color: var(--accent-color);
-            margin: 2rem auto;
-        }
-
-        /* Evidence Board Style */
-        .evidence-board {
-            background-color: #1a1a1a;
-            background-image: url('https://www.transparenttextures.com/patterns/concrete-wall-3.png');
-        }
-        .evidence-photo-wrapper {
-            opacity: 0;
-            transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform: scale(0.8) translateY(50px) rotate(-15deg);
-        }
-        .evidence-photo-wrapper.is-visible {
-            opacity: 1;
-            transform: scale(1) translateY(0) rotate(var(--rotate-deg, 0deg));
-        }
-        .evidence-photo {
-            position: relative; background: white; padding: 10px; padding-bottom: 60px; /* Space for text */
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .evidence-photo:hover {
-            transform: scale(1.1) !important; z-index: 10;
-            box-shadow: 10px 10px 25px rgba(0,0,0,0.5);
-        }
-        .evidence-photo::after {
-            content: ''; position: absolute; top: -15px; left: 50%;
-            transform: translateX(-50%); width: 100px; height: 30px;
-            background: rgba(255, 255, 224, 0.4);
-            border-left: 1px dashed rgba(0,0,0,0.2);
-            border-right: 1px dashed rgba(0,0,0,0.2);
-            box-shadow: 0 0 1px rgba(0,0,0,0.2);
-        }
-        .evidence-caption {
-            position: absolute; bottom: 10px; left: 10px; right: 10px;
-            font-family: var(--font-mono); color: #333;
-        }
-        
-        /* Video Monitor Style */
-        .video-monitor {
-            position: relative; background: #000;
-            border: 1px solid rgba(185, 28, 28, 0.2);
-            padding: 1rem; box-shadow: 0 0 40px var(--accent-glow);
-        }
-        .monitor-corners {
-            content: ''; position: absolute; width: 20px; height: 20px;
-            border-color: var(--accent-color); border-style: solid;
-        }
-        .video-monitor .c-tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
-        .video-monitor .c-tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
-        .video-monitor .c-bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
-        .video-monitor .c-br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
-
-        .video-container {
-            position: relative; width: 100%; overflow: hidden;
-            padding-top: 56.25%; /* 16:9 */
-        }
-        .video-container iframe {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; border: 0;
-        }
-
-        /* Terminal Style */
-        .terminal-container {
-            background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(185, 28, 28, 0.3);
-            padding: 1.5rem;
-            position: relative;
-        }
-        .terminal-container.fit-content {
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .terminal-header {
-            font-family: var(--font-mono);
-            color: var(--accent-color);
-            border-bottom: 1px solid rgba(185, 28, 28, 0.3);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .skill-loader {
-            background-color: rgba(185, 28, 28, 0.1);
-            padding: 0.25rem;
-            border: 1px solid rgba(185, 28, 28, 0.2);
-        }
-        .skill-loader-bar {
-            background-color: var(--accent-color);
-            height: 1.25rem;
-            width: 0;
-            transition: width 2s ease-out;
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-        .is-visible .skill-loader-bar {
-            width: var(--skill-level);
-        }
-        
-        /* Form Input Styling */
-        .form-input {
-            width: 100%;
-            background-color: rgba(10, 10, 10, 0.8);
-            border: 1px solid rgba(185, 28, 28, 0.2);
-            color: var(--text-color);
-            padding: 0.75rem 1rem;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-        .form-input::placeholder {
-            color: #6b7280;
-        }
-        .select-wrapper {
-            position: relative;
-        }
-        .select-wrapper::after {
-            content: '▼';
-            font-size: 1rem;
-            color: var(--accent-color);
-            position: absolute;
-            top: 50%;
-            right: 1rem;
-            transform: translateY(-50%);
+            background: repeating-linear-gradient(0deg, var(--scanline-color), var(--scanline-color) 2px, transparent 2px, transparent 4px);
+            animation: scanline-move 20s linear infinite;
             pointer-events: none;
+            z-index: 2;
         }
-        select.form-input {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
+        @keyframes scanline-move {
+            from { background-position-y: 0; }
+            to { background-position-y: 100px; }
         }
 
-        /* Cybernetic Button Effect */
-        .cyber-button {
+        /* --- Navigation Tabs --- */
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            border: 2px solid transparent;
+            border-bottom: none;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
             position: relative;
-            background: transparent;
-            border: 2px solid;
-            transition: color 0.4s;
+            top: 2px;
+            cursor: none;
         }
-        .cyber-button .line {
-            position: absolute;
-            transition: transform 0.4s ease;
-        }
-        .cyber-button.whatsapp-btn {
-            border-color: var(--whatsapp-color);
-            color: var(--whatsapp-color);
-        }
-        .cyber-button.whatsapp-btn:hover {
+        .nav-tab.active {
+            background-color: var(--screen-bg);
+            border-color: var(--border-color);
+            border-radius: 5px 5px 0 0;
             color: white;
-        }
-        .cyber-button.whatsapp-btn .line {
-            background: var(--whatsapp-color);
-            box-shadow: 0 0 10px var(--whatsapp-glow);
+            text-shadow: 0 0 10px white;
         }
 
-        .cyber-button .line-top { top: 0; left: 0; width: 100%; height: 2px; transform: scaleX(0); transform-origin: left; }
-        .cyber-button:hover .line-top { transform: scaleX(1); }
-        .cyber-button .line-right { top: 0; right: 0; width: 2px; height: 100%; transform: scaleY(0); transform-origin: top; }
-        .cyber-button:hover .line-right { transform: scaleY(1); }
-        .cyber-button .line-bottom { bottom: 0; right: 0; width: 100%; height: 2px; transform: scaleX(0); transform-origin: right; }
-        .cyber-button:hover .line-bottom { transform: scaleX(1); }
-        .cyber-button .line-left { bottom: 0; left: 0; width: 2px; height: 100%; transform: scaleY(0); transform-origin: bottom; }
-        .cyber-button:hover .line-left { transform: scaleY(1); }
+        /* --- Content Area --- */
+        .content-area {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            position: relative;
+        }
+        .content-panel {
+            display: none;
+            animation: fadeInFromBottom 0.5s ease;
+        }
+        .content-panel.active {
+            display: block;
+        }
+        @keyframes fadeInFromBottom {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* --- Custom Scrollbar --- */
+        .content-area::-webkit-scrollbar { width: 10px; }
+        .content-area::-webkit-scrollbar-track { background: transparent; }
+        .content-area::-webkit-scrollbar-thumb {
+            background: var(--text-color);
+            border-radius: 5px;
+            border: 2px solid var(--screen-bg);
+        }
+
+        /* --- UI Elements --- */
+        .panel-title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+        .ui-button {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            cursor: none;
+        }
+        .ui-button:hover {
+            background: var(--text-color);
+            color: #000;
+        }
+
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .skill-item {
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            transition: background-color 0.2s;
+        }
+        .skill-item:hover { background-color: rgba(255, 176, 0, 0.1); }
+        .skill-item h4 { font-size: 1.2rem; }
+        .skill-item p { font-size: 0.9rem; color: #ccc; }
+
+        /* Evidence (Portfolio) */
+        .evidence-list .evidence-item {
+            border-bottom: 1px dashed var(--border-color);
+            padding: 1rem 0;
+        }
+        .evidence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: none;
+        }
+        .evidence-header h4 { font-size: 1.5rem; }
+        .evidence-tag { background: var(--text-color); color: #000; padding: 2px 5px; }
+        .evidence-content {
+            display: none;
+            margin-top: 1rem;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .evidence-item.open .evidence-content { display: grid; }
+        .evidence-media-container {
+            position: relative;
+            padding-top: 56.25%;
+            background: #000;
+        }
+        .evidence-media-container iframe, .evidence-media-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .asset-viewer {
+            border: 1px solid var(--border-color);
+            height: 300px;
+            background: #000;
+        }
+        
+        /* --- Logs (Reviews) --- */
+        .log-entry {
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .log-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+        .log-header .rating { color: #fff; }
+        #review-form-container { display: none; margin-top: 1rem; }
+        .form-input {
+             width: 100%;
+             padding: 0.5rem;
+             background: rgba(0,0,0,0.2);
+             border: 1px solid var(--border-color);
+             color: var(--text-color);
+             margin-bottom: 0.5rem;
+        }
+
+        /* --- Mute Button --- */
+        #mute-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--text-color);
+            background: transparent;
+            color: var(--text-color);
+            z-index: 10;
+            cursor: none;
+        }
+        
+        /* --- Custom Cursor --- */
+        .custom-cursor-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: var(--text-color);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+
     </style>
 </head>
 <body>
-    <!-- Preloader -->
-    <div id="preloader">
-        <div class="loader-text">ACCESSING CASE FILE #7761...</div>
+
+    <div class="custom-cursor-dot"></div>
+    <div class="vignette-overlay"></div>
+
+    <div class="hud-container">
+        <div class="screen-bezel">
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="profile">الملف الشخصي</button>
+                <button class="nav-tab" data-tab="evidence">الأدلة</button>
+                <button class="nav-tab" data-tab="logs">السجلات</button>
+                <button class="nav-tab" data-tab="contact">التواصل</button>
+            </nav>
+            <div class="content-area">
+                <!-- Profile Panel -->
+                <div id="profile" class="content-panel active">
+                    <h3 class="panel-title">Agent Profile: S.E.I.</h3>
+                    <p class="mb-4">تحليل نفسي: يظهر العميل قدرة استثنائية على دمج الرؤية الفنية مع التنفيذ التقني الدقيق. متخصص في تحويل المفاهيم المجردة إلى تجارب بصرية مؤثرة. الدافع الأساسي: الإبداع. الحالة: نشط وجاهز للمهمة.</p>
+                    <div class="skill-grid">
+                        <div class="skill-item"><h4>Premiere Pro</h4><p>تصريح مستوى: خبير</p></div>
+                        <div class="skill-item"><h4>After Effects</h4><p>تصريح مستوى: متقدم</p></div>
+                        <div class="skill-item"><h4>AI Video Generation</h4><p>تصريح مستوى: متقدم</p></div>
+                        <div class="skill-item"><h4>Illustrator</h4><p>تصريح مستوى: متمرس</p></div>
+                        <div class="skill-item"><h4>Copywriting</h4><p>تصريح مستوى: متمرس</p></div>
+                        <div class="skill-item"><h4>HTML/CSS/JS</h4><p>تصريح مستوى: متقدم</p></div>
+                    </div>
+                </div>
+
+                <!-- Evidence Panel -->
+                <div id="evidence" class="content-panel">
+                    <h3 class="panel-title">Evidence Locker</h3>
+                    <div class="evidence-list">
+                        <!-- Content will be injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Logs Panel -->
+                <div id="logs" class="content-panel">
+                     <h3 class="panel-title">Archived Audio Logs</h3>
+                     <div id="reviews-list" class="mb-4"> <!-- Reviews will be injected here --> </div>
+                     <button id="show-review-form-btn" class="ui-button">Add New Log</button>
+                     <div id="review-form-container">
+                         <form id="review-form" class="space-y-4 mt-4">
+                            <input type="text" id="review-name" name="name" class="form-input" placeholder="Callsign (Name)..." required>
+                            <input type="number" id="review-rating" name="rating" class="form-input" min="1" max="5" placeholder="Rating (1-5)..." required>
+                            <textarea id="review-comment" name="comment" rows="3" class="form-input" placeholder="Log Entry..."></textarea>
+                            <button type="submit" id="submit-review-btn" class="ui-button">Submit Log</button>
+                         </form>
+                     </div>
+                </div>
+
+                <!-- Contact Panel -->
+                <div id="contact" class="content-panel">
+                    <h3 class="panel-title">Secure Transmission</h3>
+                    <form id="service-request-form" class="space-y-4">
+                        <input type="text" id="name" class="form-input" placeholder="Callsign (Name)..." required>
+                        <select id="service-type" class="form-input" required>
+                            <option value="">-- Select Directive Type --</option>
+                            <option value="Video Editing">Video Editing</option>
+                            <option value="Graphic Design">Graphic Design</option>
+                            <option value="AI Video">AI Video Generation</option>
+                            <option value="Interactive Profile">Interactive Profile</option>
+                            <option value="Copywriting">Copywriting</option>
+                        </select>
+                        <textarea id="description" rows="5" class="form-input" placeholder="Directive Details..."></textarea>
+                        <button type="submit" class="ui-button w-full">Transmit Message</button>
+                    </form>
+                </div>
+            </div>
+            <button id="mute-button">M</button>
+        </div>
     </div>
 
-    <!-- Background Video -->
-    <video playsinline autoplay muted loop id="video-bg">
-        <source src="https://res.cloudinary.com/dz4xwjvif/video/upload/v1752171569/9669050-hd_1920_1080_25fps_oohjv9.mp4" type="video/mp4">
-    </video>
-    <div class="video-overlay"></div>
-
-    <!-- Hero Section -->
-    <header class="min-h-screen flex items-center justify-center text-center text-white px-4">
-        <div>
-            <h1 class="font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl glitch-effect" data-text="SEIF EL ISLAM">SEIF EL ISLAM</h1>
-            <p class="mt-4 text-lg md:text-2xl font-light tracking-widest">Video Editor . Graphic Designer . Copywriter</p>
-        </div>
-    </header>
-
-    <!-- About Section -->
-    <section class="content-section bg-black/80">
-        <div class="container mx-auto max-w-4xl">
-            <div class="terminal-container fit-content reveal-on-scroll">
-                <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
-                <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
-                <div class="terminal-header text-left text-lg md:text-xl lg:text-2xl decode-effect">> SUSPECT PROFILE: CASE #7761</div>
-                <div class="text-base md:text-xl leading-relaxed text-left space-y-2 p-4">
-                    <p class="reveal-on-scroll" style="transition-delay: 200ms;">Seif El Islam. A multi-skilled creative professional,</p>
-                    <p class="reveal-on-scroll" style="transition-delay: 400ms;">combining artistic vision with technical expertise.</p>
-                    <p class="reveal-on-scroll" style="transition-delay: 600ms;">Mission: To transform ideas into impactful visual experiences that leave a lasting impression.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Portfolio Showcase -->
-    <section class="content-section evidence-board">
-        <div class="container mx-auto max-w-6xl">
-            <h2 class="font-display text-5xl md:text-6xl text-white text-center reveal-on-scroll glitch-effect" data-text="ATTACHED EVIDENCE: PORTFOLIO">ATTACHED EVIDENCE: PORTFOLIO</h2>
-            <div class="section-divider reveal-on-scroll" style="transition-delay: 100ms;"></div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mt-12">
-                <!-- Portfolio Images -->
-                <div class="evidence-photo-wrapper" style="--rotate-deg: -3deg; transition-delay: 200ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752048960/%D8%B9%D8%B7%D9%88%D8%B1_%D8%A7%D9%84%D8%B4%D8%B1%D9%82_%D8%A7%D9%84%D8%A3%D9%88%D8%B3%D8%B7_%D9%84%D9%88%D8%AC%D9%88_zie0b1.jpg" alt="Perfume Design" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-01: PERFUME_AD</p></div></div>
-                <div class="evidence-photo-wrapper" style="--rotate-deg: 2deg; transition-delay: 300ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049216/Logo_halwa_al_qodes_2_jd6nyb.jpg" alt="Sweets Logo" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-02: SWEETS_LOGO</p></div></div>
-                <div class="evidence-photo-wrapper" style="--rotate-deg: -1deg; transition-delay: 400ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752168394/%D8%AF%D9%84%D9%8A%D9%84_%D8%A7%D9%84%D8%B1%D9%8A%D8%A7%D8%B6_%D8%A7%D9%84%D8%A3%D9%88%D9%84_2_dkx2wl.jpg" alt="Riyadh Guide Design" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-03: RIYADH_GUIDE</p></div></div>
-                <div class="evidence-photo-wrapper" style="--rotate-deg: 4deg; transition-delay: 500ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752167786/%D8%AF%D9%84%D9%8A%D9%84_%D8%A7%D9%84%D8%B1%D9%8A%D8%A7%D8%B6_%D8%A7%D9%84%D8%B4%D8%A7%D9%85%D9%84_ddjrb7.jpg" alt="Riyadh Guide Design" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-04: RIYADH_GUIDE_V2</p></div></div>
-                <div class="evidence-photo-wrapper lg:col-start-2" style="--rotate-deg: -2deg; transition-delay: 600ms;"><div class="evidence-photo"><img src="https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049317/1752033860076_si3ycq.png" alt="Bike Logo" class="w-full h-auto"><p class="evidence-caption">EVIDENCE-05: BIKES_LOGO</p></div></div>
-            </div>
-             <div class="mt-20 reveal-on-scroll">
-                <h3 class="font-display text-4xl text-white text-center mb-8 glitch-effect" data-text="VIDEO SAMPLE">VIDEO SAMPLE</h3>
-                <div class="max-w-4xl mx-auto video-monitor">
-                    <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
-                    <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
-                    <div class="video-container">
-                        <iframe src="https://www.youtube.com/embed/1wgL00xdLrU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-16 reveal-on-scroll">
-                <h3 class="font-display text-4xl text-white text-center mb-8 glitch-effect" data-text="AI GENERATED VIDEO">AI GENERATED VIDEO</h3>
-                <div class="max-w-4xl mx-auto video-monitor">
-                    <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
-                    <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
-                    <div class="video-container">
-                        <iframe src="https://player.cloudinary.com/embed/?cloud_name=dz4xwjvif&public_id=Setting_the_same_202507081234_xc5aj0&profile=cld-default" title="Cloudinary Video Player" frameborder="0" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Skills & Service Request Section -->
-    <section class="content-section bg-black/80">
-        <div class="container mx-auto max-w-6xl">
-            <div class="terminal-container reveal-on-scroll">
-                <div class="monitor-corners c-tl"></div><div class="monitor-corners c-tr"></div>
-                <div class="monitor-corners c-bl"></div><div class="monitor-corners c-br"></div>
-                <div class="terminal-header text-left text-lg md:text-xl lg:text-2xl decode-effect">> Executing skill_analysis.exe...</div>
-                <div class="p-4">
-                    <div class="space-y-4">
-                        <div class="skill-item text-base md:text-lg"><p>Premiere Pro <span class="font-mono text-sm text-gray-400">[EXPERT]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 95%;"></div></div></div>
-                        <div class="skill-item text-base md:text-lg"><p>After Effects <span class="font-mono text-sm text-gray-400">[ADVANCED]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 79%;"></div></div></div>
-                        <div class="skill-item text-base md:text-lg"><p>AI Video Generation <span class="font-mono text-sm text-gray-400">[ADVANCED]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 89%;"></div></div></div>
-                        <div class="skill-item text-base md:text-lg"><p>Illustrator <span class="font-mono text-sm text-gray-400">[PROFICIENT]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 75%;"></div></div></div>
-                        <div class="skill-item text-base md:text-lg"><p>Copywriting <span class="font-mono text-sm text-gray-400">[PROFICIENT]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 69%;"></div></div></div>
-                        <div class="skill-item text-base md:text-lg"><p>HTML/CSS <span class="font-mono text-sm text-gray-400">[ADVANCED]</span></p><div class="skill-loader"><div class="skill-loader-bar" style="--skill-level: 90%;"></div></div></div>
-                    </div>
-                </div>
-                <div class="terminal-header mt-12 text-lg md:text-xl lg:text-2xl decode-effect">> Transmitting New Mission...</div>
-                <form id="service-request-form" class="p-4 space-y-6">
-                    <div>
-                        <label for="name" class="font-mono text-lg text-gray-400 block mb-2 text-left">> Name:</label>
-                        <input type="text" id="name" name="name" class="form-input text-left" placeholder="Enter your full name..." required>
-                    </div>
-                    <div>
-                        <label for="service-type" class="font-mono text-lg text-gray-400 block mb-2 text-left">> Service Type:</label>
-                        <div class="select-wrapper">
-                            <select id="service-type" name="service-type" class="form-input text-left" required>
-                                <option value="" disabled selected>-- Select Service Type --</option>
-                                <option value="Video Editing">Video Editing</option>
-                                <option value="Graphic Design">Graphic Design (Logos, Branding)</option>
-                                <option value="Interactive Profile Build">Interactive Profile Build (CV/Portfolio)</option>
-                                <option value="AI Generated Video">AI Generated Video</option>
-                                <option value="Copywriting">Copywriting</option>
-                                <option value="Web Interface Design">Web Interface Design (HTML/CSS)</option>
-                                <option value="Consultation">Consultation / Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="description" class="font-mono text-lg text-gray-400 block mb-2 text-left">> Request Details:</label>
-                        <textarea id="description" name="description" rows="5" class="form-input text-left" placeholder="Describe the project or request here..." required></textarea>
-                    </div>
-                    <div class="pt-4">
-                        <button type="submit" class="cyber-button whatsapp-btn w-full flex items-center justify-center gap-3 text-center font-display text-lg md:text-xl py-3">
-                            <span class="line line-top"></span><span class="line line-right"></span><span class="line line-bottom"></span><span class="line line-left"></span>
-                            <span>Transmit Mission via WhatsApp</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <footer class="text-center py-6 bg-black text-gray-500">
-        <p>CASE FILE CLOSED. &copy; 2025 Seif El Islam. All Rights Reserved.</p>
-    </footer>
-
     <script>
-        window.addEventListener('load', function() {
-            const preloader = document.getElementById('preloader');
-            preloader.classList.add('loaded');
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DATA ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwuLKpOhx1YmWl1bezEc7aJF2kgPwIwazWhqzYuEj4XO6Aa0TZDAHBeAWClhKCByXo2w/exec';
+        const portfolioData = [
+            { id: 'v-001', type: 'video', title: 'Case V-001', tag: 'Video Editing', url: 'https://www.youtube.com/embed/KeBKMOAs_a8' },
+            { id: 'v-002', type: 'video', title: 'Case V-002', tag: 'Motion Graphics', url: 'https://www.youtube.com/embed/1wgL00xdLrU' },
+            { id: 'v-003', type: 'video', title: 'Case V-003', tag: 'Video Editing', url: 'https://www.youtube.com/embed/Ego8GVwLw_o' },
+            { id: 'v-004', type: 'video', title: 'Case V-004', tag: 'AI Generation', url: 'https://www.youtube.com/embed/MIwTS0pxr28' },
+            { id: 'i-001', type: 'image', title: 'Case I-001', tag: 'Brand Identity', url: 'https://res.cloudinary.com/dz4xwjvif/image/upload/v1752048960/%D8%B9%D8%B7%D9%88%D8%B1_%D8%A7%D9%84%D8%B4%D8%B1%D9%82_%D8%A7%D9%84%D8%A3%D9%88%D8%B3%D8%B7_%D9%84%D9%88%D8%AC%D9%88_zie0b1.jpg' },
+            { id: 'i-002', type: 'image', title: 'Case I-002', tag: 'Logo Design', url: 'https://res.cloudinary.com/dz4xwjvif/image/upload/v1752049216/Logo_halwa_al_qodes_2_jd6nyb.jpg' },
+            { id: 'ugc-01', type: 'video', title: 'Case UGC-01', tag: 'UGC Ad', url: 'https://player.cloudinary.com/embed/?cloud_name=dz4xwjvif&public_id=ai_masri_good_hrvboy&profile=cld-default' },
+            { id: 'ugc-02', type: 'video', title: 'Case UGC-02', tag: 'UGC Ad', url: 'https://player.cloudinary.com/embed/?cloud_name=dz4xwjvif&public_id=ayon_al_amira_w19lmf&profile=cld-default' }
+        ];
+
+        // --- Audio Setup ---
+        const sounds = {
+            ambient: new Tone.Noise("brown").set({ volume: -40, fadeIn: 2 }).toDestination(),
+            click: new Tone.Player("https://res.cloudinary.com/dz4xwjvif/video/upload/v1752469235/camera-shutter-6305_y613yq.mp3").toDestination(),
+            hover: new Tone.Player("https://res.cloudinary.com/dz4xwjvif/video/upload/v1752469235/blip-131856_k3y72v.mp3").toDestination(),
+        };
+        sounds.hover.volume.value = -10;
+        let isMuted = true; // Start muted
+        Tone.Destination.mute = isMuted;
+        
+        const muteButton = document.getElementById('mute-button');
+        muteButton.textContent = isMuted ? 'U' : 'M';
+        muteButton.addEventListener('click', () => {
+            if (Tone.context.state !== 'running') Tone.start();
+            isMuted = !isMuted;
+            Tone.Destination.mute = isMuted;
+            muteButton.textContent = isMuted ? 'U' : 'M';
+            if (!isMuted && sounds.ambient.state !== 'started') {
+                sounds.ambient.start();
+            }
         });
 
-        const scrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
+        // --- UI Initialization ---
+        const cursorDot = document.querySelector('.custom-cursor-dot');
+        window.addEventListener('mousemove', (e) => {
+            cursorDot.style.left = e.clientX + 'px';
+            cursorDot.style.top = e.clientY + 'px';
+        });
+
+        // --- Tab Navigation ---
+        const tabs = document.querySelectorAll('.nav-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (Tone.context.state !== 'running') Tone.start();
+                if (sounds.click.loaded) sounds.click.start();
+                
+                document.querySelector('.nav-tab.active').classList.remove('active');
+                document.querySelector('.content-panel.active').classList.remove('active');
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+            tab.addEventListener('mouseenter', () => {
+                if (sounds.hover.loaded) sounds.hover.start();
+            });
+        });
+
+        // --- Evidence Panel Population & Logic ---
+        const evidenceList = document.querySelector('.evidence-list');
+        const threeJsScenes = {};
+
+        portfolioData.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'evidence-item';
+            itemEl.dataset.asset = item.id;
+
+            let mediaHtml = '';
+            if (item.type === 'video') {
+                mediaHtml = `<div class="evidence-media-container"><iframe loading="lazy" src="${item.url}" frameborder="0" allowfullscreen></iframe></div>`;
+            } else if (item.type === 'image') {
+                mediaHtml = `<div class="evidence-media-container"><img loading="lazy" src="${item.url}" alt="${item.title}"></div>`;
+            }
+
+            itemEl.innerHTML = `
+                <div class="evidence-header"><h4>${item.title}</h4><span class="evidence-tag">${item.tag}</span></div>
+                <div class="evidence-content">
+                    ${mediaHtml}
+                    <div class="asset-viewer" id="asset-${item.id}"></div>
+                </div>
+            `;
+            evidenceList.appendChild(itemEl);
+        });
+
+        function initThreeJs(containerId) {
+            if (threeJsScenes[containerId]) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true });
+            const container = document.getElementById(`asset-${containerId}`);
+            if (!container) return;
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.IcosahedronGeometry(1, 0);
+            const material = new THREE.MeshStandardMaterial({ color: 0xffb000, emissive: 0x443300, metalness: 0.8, roughness: 0.4, wireframe: true });
+            const artifact = new THREE.Mesh(geometry, material);
+            scene.add(artifact);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+            scene.add(new THREE.AmbientLight(0xffb000, 0.2));
+            camera.position.z = 2.5;
+            
+            threeJsScenes[containerId] = { renderer, scene, camera, artifact, container, isActive: false };
+            
+            window.addEventListener('resize', () => {
+                if (!container.clientWidth || !container.clientHeight) return;
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+            });
+        }
+
+        document.querySelectorAll('.evidence-item').forEach(item => {
+            const header = item.querySelector('.evidence-header');
+            header.addEventListener('click', () => {
+                const wasOpen = item.classList.contains('open');
+                document.querySelectorAll('.evidence-item').forEach(i => {
+                    i.classList.remove('open');
+                    const assetId = i.dataset.asset;
+                    if(threeJsScenes[assetId]) threeJsScenes[assetId].isActive = false;
+                });
+                
+                if (!wasOpen) {
+                    item.classList.add('open');
+                    const assetId = item.dataset.asset;
+                    initThreeJs(assetId);
+                    if (threeJsScenes[assetId]) {
+                        threeJsScenes[assetId].isActive = true;
+                        animateScene(assetId);
+                    }
                 }
             });
-        }, {
-            threshold: 0.1
+            header.addEventListener('mouseenter', () => {
+                if (sounds.hover.loaded) sounds.hover.start();
+            });
         });
 
-        document.querySelectorAll('.reveal-on-scroll').forEach((el) => scrollObserver.observe(el));
-        document.querySelectorAll('.evidence-photo-wrapper').forEach((el) => scrollObserver.observe(el));
-        document.querySelectorAll('.skill-item').forEach((el) => scrollObserver.observe(el));
-        
-        // Form submission handler
-        const serviceForm = document.getElementById('service-request-form');
-        if (serviceForm) {
-            serviceForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+        function animateScene(sceneId) {
+            const sceneInfo = threeJsScenes[sceneId];
+            if (!sceneInfo || !sceneInfo.isActive) return;
+            requestAnimationFrame(() => animateScene(sceneId));
+            sceneInfo.artifact.rotation.y += 0.002;
+            sceneInfo.renderer.render(sceneInfo.scene, sceneInfo.camera);
+        }
 
+        // --- Reviews / Logs Logic ---
+        const reviewsListEl = document.getElementById('reviews-list');
+        const showReviewFormBtn = document.getElementById('show-review-form-btn');
+        const reviewFormContainer = document.getElementById('review-form-container');
+        const reviewForm = document.getElementById('review-form');
+
+        function fetchReviews() {
+            reviewsListEl.innerHTML = '<p>Loading logs...</p>';
+            fetch(SCRIPT_URL + '?action=get&cache_bust=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    reviewsListEl.innerHTML = '';
+                    if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+                        const sortedData = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                        sortedData.forEach(review => {
+                            reviewsListEl.innerHTML += `
+                                <div class="log-entry">
+                                    <div class="log-header">
+                                        <h4>${review.name}</h4>
+                                        <div class="rating">${'★'.repeat(review.rating)}</div>
+                                    </div>
+                                    <p>"${review.comment}"</p>
+                                </div>`;
+                        });
+                    } else {
+                        reviewsListEl.innerHTML = '<p>No logs found in archive.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching logs:', error);
+                    reviewsListEl.innerHTML = '<p>Error accessing log archive.</p>';
+                });
+        }
+        
+        showReviewFormBtn.addEventListener('click', () => {
+            reviewFormContainer.style.display = reviewFormContainer.style.display === 'block' ? 'none' : 'block';
+        });
+
+        reviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-review-btn');
+            submitBtn.textContent = 'Transmitting...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(reviewForm);
+            fetch(SCRIPT_URL, { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        submitBtn.textContent = 'Transmission Complete';
+                        setTimeout(() => {
+                            reviewForm.reset();
+                            reviewFormContainer.style.display = 'none';
+                            submitBtn.textContent = 'Submit Log';
+                            submitBtn.disabled = false;
+                            fetchReviews();
+                        }, 1500);
+                    } else { throw new Error(data.message || 'Server error'); }
+                })
+                .catch(error => {
+                    console.error('Transmission failed:', error);
+                    alert('Log transmission failed. Check connection.');
+                    submitBtn.textContent = 'Submit Log';
+                    submitBtn.disabled = false;
+                });
+        });
+
+        // --- Contact Form ---
+         const serviceRequestForm = document.getElementById('service-request-form');
+         serviceRequestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 const name = document.getElementById('name').value;
                 const serviceType = document.getElementById('service-type').value;
                 const description = document.getElementById('description').value;
                 const myPhoneNumber = '213776170547';
-
-                let message = `Hello,\n\n`;
-                message += `*Name:* ${name}\n`;
-                message += `*Requested Service:* ${serviceType}\n\n`;
-                message += `*Request Details:*\n${description}`;
-
+                let message = `Directive Received:\n\n*Callsign:* ${name}\n*Type:* ${serviceType}\n\n*Briefing:*\n${description}`;
                 const encodedMessage = encodeURIComponent(message);
                 const whatsappURL = `https://wa.me/${myPhoneNumber}?text=${encodedMessage}`;
                 window.open(whatsappURL, '_blank');
             });
-        }
-        
-        // Hacking/Decode Effect
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$*";
-        document.querySelectorAll('.decode-effect').forEach(el => {
-            let interval = null;
-            const originalText = el.innerText;
 
-            const observer = new IntersectionObserver(entries => {
-                if(entries[0].isIntersecting){
-                    let iteration = 0;
-                    clearInterval(interval);
-                    interval = setInterval(() => {
-                        el.innerText = originalText.split("")
-                            .map((letter, index) => {
-                                if(index < iteration) {
-                                    return originalText[index];
-                                }
-                                return letters[Math.floor(Math.random() * letters.length)]
-                            })
-                            .join("");
-                        
-                        if(iteration >= originalText.length){ 
-                            clearInterval(interval);
-                        }
-                        
-                        iteration += 1 / 2; // Slower, more deliberate decoding
-                    }, 40);
-                    observer.unobserve(el);
-                }
-            }, { threshold: 0.5 });
-            observer.observe(el);
-        });
-
+        // Initial Load
+        fetchReviews();
+    });
     </script>
 </body>
 </html>
-
